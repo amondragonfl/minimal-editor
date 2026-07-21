@@ -19,6 +19,7 @@ void enableRawMode(void){
     write(STDOUT_FILENO, "\x1b[?1049h", 8); // enter alternate screen
 
     struct termios raw = orig_termios;
+    raw.c_iflag &= ~(IXON);  
     raw.c_lflag &= ~(ECHO | ICANON | ISIG);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
