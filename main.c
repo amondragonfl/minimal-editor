@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <termios.h>
 
+#include <ctype.h>
+#include <stdio.h>
+
 struct termios orig_termios;
 
 void disableRawMode(void){
@@ -16,7 +19,7 @@ void enableRawMode(void){
     write(STDOUT_FILENO, "\x1b[?1049h", 8); // enter alternate screen
 
     struct termios raw = orig_termios;
-    raw.c_lflag &= ~(ECHO);
+    raw.c_lflag &= ~(ECHO | ICANON | ISIG);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
@@ -24,9 +27,12 @@ int main (void){
     enableRawMode();
 
     char c;
-    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q')  
-    {
-        /* code */
+    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
+        if (iscntrl(c)) {
+            printf("%d\n", c);
+        } else {
+            printf("%d ('%c')\n", c, c);
+        }
     }
     return 0;
 }
