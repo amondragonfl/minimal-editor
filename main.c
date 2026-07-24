@@ -1,3 +1,4 @@
+/* Includes */
 #include <unistd.h>
 #include <stdlib.h>
 #include <termios.h>
@@ -5,15 +6,21 @@
 #include <ctype.h>
 #include <stdio.h>
 
+/* Defines */
+#define ENTER_ALT_SCREEN "\x1b[?1049h"
+#define EXIT_ALT_SCREEN  "\x1b[?1049l"
+
+/* Data */
 struct termios orig_termios;
 
+/* terminal */
 void die(const char *s){
     perror(s);
     exit(1);
 }
 
 void disableRawMode(void){
-    write(STDOUT_FILENO, "\x1b[?1049l", 8);   // exit alternate screen
+    write(STDOUT_FILENO, EXIT_ALT_SCREEN, sizeof(EXIT_ALT_SCREEN) - 1);   // exit alternate screen
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1){
         die("tcsetattr");
     }
@@ -25,7 +32,7 @@ void enableRawMode(void){
     }
     atexit(disableRawMode);
 
-    write(STDOUT_FILENO, "\x1b[?1049h", 8); // enter alternate screen
+    write(STDOUT_FILENO, ENTER_ALT_SCREEN,  sizeof(ENTER_ALT_SCREEN) - 1); // enter alternate screen
 
     struct termios raw = orig_termios;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);  
@@ -40,6 +47,8 @@ void enableRawMode(void){
         die("tcsetattr");
     }
 }
+
+/* Init */
 
 int main (void){
     enableRawMode();
